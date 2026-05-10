@@ -1,0 +1,6 @@
+{
+  "name": "trader-agent",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "engines": { "node": ">=20 <22" }
+}

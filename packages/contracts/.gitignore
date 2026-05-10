@@ -1,0 +1,9 @@
+# Segunda línea de defensa — ignora .env aunque el root .gitignore falle
+.env
+.env.local
+.env.*.local
+
+# Artefactos de compilación y despliegue
+cache/
+artifacts/
+deployments/

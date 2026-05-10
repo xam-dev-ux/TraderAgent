@@ -1,0 +1,17 @@
+{
+  "name": "@trader/contracts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.ts --network base",
+    "register": "hardhat run scripts/register8004.ts --network base",
+    "update-agent": "hardhat run scripts/updateAgent.ts --network base"
+  },
+  "devDependencies": {
+    "hardhat": "^2.22.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.0.0",
+    "viem": "^2.21.0"
+  }
+}
