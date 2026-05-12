@@ -2,7 +2,7 @@ import http from "http";
 import { randomUUID } from "crypto";
 import { Client, type Signer, IdentifierKind } from "@xmtp/node-sdk";
 import { keccak256, toBytes } from "viem";
-import { account, publicClient, builderDataSuffix } from "./wallet.js";
+import { account, publicClient, walletClient, builderDataSuffix } from "./wallet.js";
 import {
   PORT, BOT_ADDRESS, BOT_URL, DASHBOARD_URL,
   SWAP_FEE_USDC, PRICE_PER_ANALYSIS, MIN_SWAP_USDC,
@@ -177,6 +177,12 @@ const server = http.createServer(async (req, res) => {
         const result = await runAnalysis(pending.token!);
         paymentStatus.set(nonce, { status: "done" });
         await pending.send(result).catch((e: unknown) => console.error("[confirm-payment] xmtp send failed:", e));
+        // Analysis has no bot-side swap tx; emit a minimal attributed tx so it appears in the builder dashboard
+        if (builderDataSuffix) {
+          walletClient.sendTransaction({ to: account.address, value: 0n })
+            .then((h) => console.log(`[analysis] attribution tx: ${h}`))
+            .catch((e: unknown) => console.error("[analysis] attribution tx failed:", e));
+        }
       }
 
       pendingPayments.delete(nonce);
