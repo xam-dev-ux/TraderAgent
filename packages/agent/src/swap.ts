@@ -1,5 +1,5 @@
 import { parseUnits, maxUint256 } from "viem";
-import { walletClient, publicClient, account } from "./wallet.js";
+import { writeContract, publicClient, account } from "./wallet.js";
 import { USDC_ADDRESS, WETH_ADDRESS, UNISWAP_ROUTER, UNISWAP_POOL_FEE } from "./constants.js";
 import { recordSwapOnChain } from "./swapRegistry.js";
 import { logTransaction } from "./transactions.js";
@@ -41,7 +41,7 @@ export async function executeSwap(
   });
 
   if (allowance < amountIn) {
-    const approveTx = await walletClient.writeContract({
+    const approveTx = await writeContract({
       address: USDC_ADDRESS, abi: USDC_ABI, functionName: "approve",
       args: [UNISWAP_ROUTER, maxUint256],
     });
@@ -61,7 +61,7 @@ export async function executeSwap(
     }],
   });
 
-  const swapTxHash = await walletClient.writeContract({
+  const swapTxHash = await writeContract({
     address: UNISWAP_ROUTER,
     abi: ROUTER_ABI,
     functionName: "exactInputSingle",

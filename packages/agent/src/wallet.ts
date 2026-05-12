@@ -17,10 +17,24 @@ export const walletClient = createWalletClient({
   account,
   chain: base,
   transport: http(BASE_RPC_URL),
-  ...(BUILDER_CODE ? { dataSuffix: toBuilderBytes(BUILDER_CODE) } : {}),
 });
 
 export const publicClient = createPublicClient({
   chain: base,
   transport: http(BASE_RPC_URL),
 });
+
+// dataSuffix debe pasarse por llamada, no en createWalletClient
+const builderSuffix: `0x${string}` | undefined = BUILDER_CODE
+  ? toBuilderBytes(BUILDER_CODE)
+  : undefined;
+
+// Wrapper que inyecta el builder code en cada tx automáticamente
+export function writeContract(
+  args: Parameters<typeof walletClient.writeContract>[0]
+): ReturnType<typeof walletClient.writeContract> {
+  return walletClient.writeContract({
+    ...args,
+    ...(builderSuffix ? { dataSuffix: builderSuffix } : {}),
+  } as Parameters<typeof walletClient.writeContract>[0]);
+}

@@ -1,5 +1,5 @@
 import { SWAP_REGISTRY } from "./constants.js";
-import { walletClient, publicClient } from "./wallet.js";
+import { writeContract, publicClient } from "./wallet.js";
 
 const RECORD_SWAP_ABI = [
   {
@@ -71,7 +71,7 @@ export async function recordSwapOnChain(
   if (!SWAP_REGISTRY) return;
   try {
     const txHash32 = (swapTxHash.padEnd(66, "0")) as `0x${string}`;
-    const txHash = await walletClient.writeContract({
+    const txHash = await writeContract({
       address: SWAP_REGISTRY,
       abi: RECORD_SWAP_ABI,
       functionName: "recordSwap",

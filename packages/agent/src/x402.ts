@@ -1,4 +1,4 @@
-import { walletClient, publicClient } from "./wallet.js";
+import { writeContract, publicClient } from "./wallet.js";
 import { USDC_ADDRESS } from "./constants.js";
 import { logTransaction } from "./transactions.js";
 
@@ -56,7 +56,7 @@ export async function settleX402Payment(xPaymentHeader: string) {
   const vRaw = raw.length >= 130 ? parseInt(raw.slice(128, 130), 16) : 27;
   const v = vRaw < 27 ? vRaw + 27 : vRaw;
 
-  const txHash = await walletClient.writeContract({
+  const txHash = await writeContract({
     address: USDC_ADDRESS, abi: TRANSFER_WITH_AUTH_ABI,
     functionName: "transferWithAuthorization",
     args: [
