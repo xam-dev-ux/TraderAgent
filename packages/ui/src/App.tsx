@@ -27,12 +27,10 @@ export default function App() {
 
   async function load() {
     setLoading(true);
-    try {
-      const [s, t, c] = await Promise.all([fetchStats(), fetchTransactions(), fetchChainStats()]);
-      setStats(s);
-      setTxs(t);
-      setChain(c);
-    } catch {}
+    const [s, t, c] = await Promise.allSettled([fetchStats(), fetchTransactions(), fetchChainStats()]);
+    if (s.status === "fulfilled") setStats(s.value);
+    if (t.status === "fulfilled") setTxs(t.value);
+    if (c.status === "fulfilled") setChain(c.value);
     setLoading(false);
   }
 
@@ -65,7 +63,7 @@ export default function App() {
       {stats && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 28 }}>
           <StatCard label="Onchain Swaps"    value={String(chain?.count ?? stats.totalSwaps)} />
-          <StatCard label="Volume (USDC)"    value={`$${(chain?.volumeUSDC ?? stats.totalVolumeUSDC).toFixed(2)}`} />
+          <StatCard label="Volume (USDC)"    value={`$${(chain?.volumeUSDC ?? stats.totalVolumeUSDC ?? 0).toFixed(2)}`} />
           <StatCard label="Uptime"           value={formatUptime(stats.uptime)} />
           <StatCard label="Bot Address"      value={shortAddr(stats.botAddress)} small />
         </div>

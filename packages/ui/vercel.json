@@ -4,6 +4,6 @@
   "framework": "vite",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "env": {
-    "VITE_AGENT_API_URL": "https://traderagent-jzhf.onrender.com/"
+    "VITE_AGENT_API_URL": "https://traderagent-jzhf.onrender.com"
   }
 }
