@@ -106,7 +106,7 @@ export function buildPayPage(amountUSDC: number, description: string, botAddress
         if (!resp.ok) throw new Error(body.error || 'Server error');
 
         btn.textContent = '✓ Paid';
-        setStatus('⏳ Confirmed! Executing swap…<a class="tx-link" href="https://basescan.org/tx/' + txHash + '" target="_blank">View payment →</a>', 'loading');
+        setStatus('⏳ Payment confirmed! Processing your request…<a class="tx-link" href="https://basescan.org/tx/' + txHash + '" target="_blank">View payment →</a>', 'loading');
 
         let polls = 0;
         const poll = setInterval(async () => {
@@ -119,10 +119,11 @@ export function buildPayPage(amountUSDC: number, description: string, botAddress
             const s = await fetch('/api/payment-status/' + NONCE).then(r => r.json());
             if (s.status === 'done') {
               clearInterval(poll);
-              setStatus('✓ Swap done! ETH sent to your wallet.' +
+              setStatus('✅ Done! Check your XMTP chat for the result.' +
                 (s.swapTxHash ? '<a class="tx-link" href="https://basescan.org/tx/' + s.swapTxHash + '" target="_blank">View swap on Basescan →</a>' : ''), 'success');
             } else if (s.status === 'failed') {
-              clearInterval(poll); setStatus('Failed: ' + s.error, 'error');
+              clearInterval(poll);
+              setStatus('❌ ' + (s.error || 'Something went wrong'), 'error');
               btn.disabled = false;
             }
           } catch {}

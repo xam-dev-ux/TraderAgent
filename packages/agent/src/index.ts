@@ -131,9 +131,19 @@ const server = http.createServer(async (req, res) => {
     json(res, { status: "processing", txHash });
 
     (async () => {
-      const receipt = await publicClient.waitForTransactionReceipt({
-        hash: txHash as `0x${string}`, timeout: 120_000,
-      });
+      console.log(`[confirm-payment] nonce=${nonce} txHash=${txHash}`);
+
+      let receipt;
+      try {
+        receipt = await publicClient.waitForTransactionReceipt({
+          hash: txHash as `0x${string}`, timeout: 120_000,
+        });
+      } catch (err) {
+        console.error(`[confirm-payment] waitForReceipt failed: ${(err as Error).message}`);
+        paymentStatus.set(nonce, { status: "failed", error: "Could not confirm transaction on-chain" });
+        return;
+      }
+
       if (receipt.status !== "success") {
         paymentStatus.set(nonce, { status: "failed", error: "Transaction reverted" });
         pendingPayments.get(nonce)?.send("❌ Payment reverted.").catch(() => {});
@@ -142,7 +152,13 @@ const server = http.createServer(async (req, res) => {
       }
 
       const pending = pendingPayments.get(nonce);
-      if (!pending) return;
+      if (!pending) {
+        console.error(`[confirm-payment] no pending entry for nonce=${nonce} (server restart?)`);
+        paymentStatus.set(nonce, { status: "failed", error: "Payment session expired — please start a new request in chat." });
+        return;
+      }
+
+      console.log(`[confirm-payment] executing type=${pending.type}`);
 
       if (pending.type === "swap") {
         try {
@@ -160,11 +176,14 @@ const server = http.createServer(async (req, res) => {
       } else if (pending.type === "analysis") {
         const result = await runAnalysis(pending.token!);
         paymentStatus.set(nonce, { status: "done" });
-        await pending.send(result);
+        await pending.send(result).catch((e: unknown) => console.error("[confirm-payment] xmtp send failed:", e));
       }
 
       pendingPayments.delete(nonce);
-    })().catch(console.error);
+    })().catch((err: unknown) => {
+      console.error(`[confirm-payment] unhandled error:`, err);
+      paymentStatus.set(nonce, { status: "failed", error: "Internal server error" });
+    });
     return;
   }
 
