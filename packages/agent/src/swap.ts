@@ -1,6 +1,6 @@
-import { parseUnits, maxUint256 } from "viem";
-import { writeContract, publicClient, account } from "./wallet.js";
-import { USDC_ADDRESS, WETH_ADDRESS, UNISWAP_ROUTER, UNISWAP_POOL_FEE } from "./constants.js";
+import { parseUnits, maxUint256, encodeFunctionData } from "viem";
+import { writeContract, walletClient, publicClient, account } from "./wallet.js";
+import { USDC_ADDRESS, WETH_ADDRESS, UNISWAP_ROUTER, UNISWAP_POOL_FEE, BUILDER_CODE } from "./constants.js";
 import { recordSwapOnChain } from "./swapRegistry.js";
 import { logTransaction } from "./transactions.js";
 
@@ -49,27 +49,31 @@ export async function executeSwap(
     await new Promise((r) => setTimeout(r, 3000));
   }
 
+  const swapParams = {
+    tokenIn: USDC_ADDRESS as `0x${string}`, tokenOut: WETH_ADDRESS as `0x${string}`,
+    fee: UNISWAP_POOL_FEE, recipient,
+    amountIn, amountOutMinimum: 0n, sqrtPriceLimitX96: 0n,
+  };
+
   const { result } = await publicClient.simulateContract({
     account: account.address,
     address: UNISWAP_ROUTER,
     abi: ROUTER_ABI,
     functionName: "exactInputSingle",
-    args: [{
-      tokenIn: USDC_ADDRESS, tokenOut: WETH_ADDRESS,
-      fee: UNISWAP_POOL_FEE, recipient,
-      amountIn, amountOutMinimum: 0n, sqrtPriceLimitX96: 0n,
-    }],
+    args: [swapParams],
   });
 
-  const swapTxHash = await writeContract({
-    address: UNISWAP_ROUTER,
+  // sendTransaction con calldata manual — dataSuffix del cliente se aplica correctamente
+  const calldata = encodeFunctionData({
     abi: ROUTER_ABI,
     functionName: "exactInputSingle",
-    args: [{
-      tokenIn: USDC_ADDRESS, tokenOut: WETH_ADDRESS,
-      fee: UNISWAP_POOL_FEE, recipient,
-      amountIn, amountOutMinimum: 0n, sqrtPriceLimitX96: 0n,
-    }],
+    args: [swapParams],
+  });
+
+  console.log(`[swap] builder: ${BUILDER_CODE || "none"} sending swap`);
+  const swapTxHash = await walletClient.sendTransaction({
+    to: UNISWAP_ROUTER,
+    data: calldata,
   });
 
   const receipt = await publicClient.waitForTransactionReceipt({ hash: swapTxHash });
