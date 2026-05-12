@@ -1,4 +1,5 @@
-const BASE = import.meta.env.VITE_AGENT_API_URL ?? "http://localhost:3000";
+// Elimina barra final independientemente de cómo venga configurada la variable
+const BASE = (import.meta.env.VITE_AGENT_API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
 
 export type Transaction = {
   type: "swap" | "payment_received" | "payment_sent";
@@ -35,15 +36,19 @@ export type ChainStats = {
 
 export async function fetchStats(): Promise<Stats> {
   const r = await fetch(`${BASE}/api/stats`);
+  if (!r.ok) throw new Error(`stats ${r.status}`);
   return r.json();
 }
 
 export async function fetchTransactions(): Promise<Transaction[]> {
   const r = await fetch(`${BASE}/api/transactions`);
-  return r.json();
+  if (!r.ok) throw new Error(`transactions ${r.status}`);
+  const data = await r.json();
+  return Array.isArray(data) ? data : [];
 }
 
 export async function fetchChainStats(): Promise<ChainStats> {
   const r = await fetch(`${BASE}/api/chain-stats`);
+  if (!r.ok) throw new Error(`chain-stats ${r.status}`);
   return r.json();
 }
