@@ -1,4 +1,4 @@
-export function buildPayPage(amountUSDC: number, description: string, botAddress: string, nonce: string): string {
+export function buildPayPage(amountUSDC: number, description: string, botAddress: string, nonce: string, builderSuffix?: string): string {
   const amountMicro = String(Math.round(amountUSDC * 1e6));
   return `<!DOCTYPE html>
 <html lang="en">
@@ -55,9 +55,10 @@ export function buildPayPage(amountUSDC: number, description: string, botAddress
     import { base } from 'https://esm.sh/viem@2.21.0/chains';
 
     const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
-    const BOT_ADDRESS  = '${botAddress}';
-    const AMOUNT_MICRO = ${amountMicro}n;
-    const NONCE        = '${nonce}';
+    const BOT_ADDRESS    = '${botAddress}';
+    const AMOUNT_MICRO   = ${amountMicro}n;
+    const NONCE          = '${nonce}';
+    const BUILDER_SUFFIX = '${builderSuffix ?? ""}';
 
     const TRANSFER_ABI = [{
       name: 'transfer', type: 'function', stateMutability: 'nonpayable',
@@ -91,7 +92,9 @@ export function buildPayPage(amountUSDC: number, description: string, botAddress
         }
 
         setStatus('Approve the USDC transfer in your wallet…', 'loading');
-        const data = encodeFunctionData({ abi: TRANSFER_ABI, functionName: 'transfer', args: [BOT_ADDRESS, AMOUNT_MICRO] });
+        const baseData = encodeFunctionData({ abi: TRANSFER_ABI, functionName: 'transfer', args: [BOT_ADDRESS, AMOUNT_MICRO] });
+        // ERC-8021: append builder code suffix so tx aparece atribuida en Base App
+        const data = BUILDER_SUFFIX ? (baseData + BUILDER_SUFFIX.replace(/^0x/, '')) : baseData;
         const txHash = await wc.sendTransaction({ account: userAddress, to: USDC_ADDRESS, data });
 
         setStatus('Waiting for confirmation…', 'loading');

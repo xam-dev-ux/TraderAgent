@@ -14,6 +14,7 @@ const dataSuffix = BUILDER_CODE
   ? Attribution.toDataSuffix({ codes: [BUILDER_CODE] })
   : undefined;
 
+export const builderDataSuffix = dataSuffix;
 console.log(`[wallet] builder code: ${BUILDER_CODE || "none"} dataSuffix: ${dataSuffix ?? "none"}`);
 
 export const walletClient = createWalletClient({

@@ -2,7 +2,7 @@ import http from "http";
 import { randomUUID } from "crypto";
 import { Client, type Signer, IdentifierKind } from "@xmtp/node-sdk";
 import { keccak256, toBytes } from "viem";
-import { account, publicClient } from "./wallet.js";
+import { account, publicClient, builderDataSuffix } from "./wallet.js";
 import {
   PORT, BOT_ADDRESS, BOT_URL, DASHBOARD_URL,
   SWAP_FEE_USDC, PRICE_PER_ANALYSIS, MIN_SWAP_USDC,
@@ -179,7 +179,7 @@ const server = http.createServer(async (req, res) => {
     if (!xPayment && req.headers.accept?.includes("text/html")) {
       cors(res);
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(buildPayPage(totalCost, `Swap ${amount} USDC → ETH`, BOT_ADDRESS, nonce));
+      res.end(buildPayPage(totalCost, `Swap ${amount} USDC → ETH`, BOT_ADDRESS, nonce, builderDataSuffix));
       return;
     }
 
@@ -235,7 +235,7 @@ const server = http.createServer(async (req, res) => {
     if (!xPayment && req.headers.accept?.includes("text/html")) {
       cors(res);
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(buildPayPage(PRICE_PER_ANALYSIS, `Analysis of ${token.toUpperCase()}`, BOT_ADDRESS, nonce));
+      res.end(buildPayPage(PRICE_PER_ANALYSIS, `Analysis of ${token.toUpperCase()}`, BOT_ADDRESS, nonce, builderDataSuffix));
       return;
     }
 
